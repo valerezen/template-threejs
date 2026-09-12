@@ -10,7 +10,19 @@ const pane = new Pane({
 
 const PARAMS = {
   aspectRatio: 3 / 4,
-  camera: "perspective",
+  camera: "orthographic",
+  fov: 75,
+  zoom: 4,
+};
+
+const resolutions = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+};
+
+const sizes = {
+  width: resolutions.height * PARAMS.aspectRatio,
+  height: resolutions.height,
 };
 
 pane
@@ -26,17 +38,19 @@ pane
     changeCamera();
   });
 
-const resolutions = {
-  width: window.innerWidth,
-  height: window.innerHeight,
-};
-
-const sizes = {
-  width: resolutions.height * PARAMS.aspectRatio,
-  height: resolutions.height,
-};
-
-const zoom = 4;
+if (PARAMS.camera == "perspective") {
+  pane.addBinding(PARAMS, "fov", {
+    min: 0,
+    max: 200,
+    step: 1,
+  });
+} else if (PARAMS.camera == "orthographic") {
+  pane.addBinding(PARAMS, "zoom", {
+    min: 0,
+    max: 200,
+    step: 1,
+  });
+}
 
 //Scene
 const scene = new THREE.Scene();
@@ -45,7 +59,7 @@ const scene = new THREE.Scene();
 const cube = new THREE.Mesh(
   new THREE.BoxGeometry(),
   new THREE.MeshBasicMaterial({
-    color: "#ff0000",
+    color: "#ffffff",
     wireframe: true,
   }),
 );
@@ -66,7 +80,7 @@ const setupCamera = () => {
     return camera;
   } else {
     console.log("orthographic");
-    const viewHeight = zoom;
+    const viewHeight = PARAMS.zoom;
     const aspect = sizes.width / sizes.height;
     const viewWidth = viewHeight * aspect;
 
@@ -116,10 +130,10 @@ const resize = () => {
   if (camera.isPerspectiveCamera) {
     camera.aspect = aspect;
   } else if (camera.isOrthographicCamera) {
-    camera.left = -(zoom * aspect) / 2;
-    camera.right = (zoom * aspect) / 2;
-    camera.top = zoom / 2;
-    camera.bottom = -zoom / 2;
+    camera.left = -(PARAMS.zoom * aspect) / 2;
+    camera.right = (PARAMS.zoom * aspect) / 2;
+    camera.top = PARAMS.zoom / 2;
+    camera.bottom = -PARAMS.zoom / 2;
   }
 
   camera.updateProjectionMatrix();
