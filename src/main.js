@@ -10,7 +10,21 @@ const pane = new Pane({
 
 const PARAMS = {
   aspectRatio: 3 / 4,
+  camera: "perspective",
 };
+
+pane
+  .addBinding(PARAMS, "camera", {
+    options: {
+      perspective: "perspective",
+      orthographic: "orthographic",
+    },
+    label: "camera",
+  })
+  .on("change", () => {
+    console.log("test");
+    changeCamera();
+  });
 
 const resolutions = {
   width: window.innerWidth,
@@ -22,6 +36,8 @@ const sizes = {
   height: resolutions.height,
 };
 
+const zoom = 4;
+
 //Scene
 const scene = new THREE.Scene();
 
@@ -30,18 +46,43 @@ const cube = new THREE.Mesh(
   new THREE.BoxGeometry(),
   new THREE.MeshBasicMaterial({
     color: "#ff0000",
+    wireframe: true,
   }),
 );
 
 scene.add(cube);
 
 //Camera
-const camera = new THREE.PerspectiveCamera(
-  75,
-  sizes.width / sizes.height,
-  0.1,
-  1000,
-);
+const setupCamera = () => {
+  if (PARAMS.camera == "perspective") {
+    console.log("perspective");
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      sizes.width / sizes.height,
+      0.1,
+      1000,
+    );
+
+    return camera;
+  } else {
+    console.log("orthographic");
+    const viewHeight = zoom;
+    const aspect = sizes.width / sizes.height;
+    const viewWidth = viewHeight * aspect;
+
+    const camera = new THREE.OrthographicCamera(
+      -viewWidth / 2,
+      viewWidth / 2,
+      viewHeight / 2,
+      -viewHeight / 2,
+      1,
+      1000,
+    );
+    return camera;
+  }
+};
+
+let camera = setupCamera();
 camera.position.z = 3;
 
 //Render
@@ -49,9 +90,10 @@ const renderer = new THREE.WebGLRenderer({
   canvas: myCanvas,
   antialias: true,
 });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(sizes.width, sizes.height);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+let controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 //Animate
@@ -68,9 +110,36 @@ const resize = () => {
   resolutions.height = window.innerHeight;
   sizes.width = resolutions.height * PARAMS.aspectRatio;
   sizes.height = resolutions.height;
-  camera.aspect = sizes.width / sizes.height;
+
+  const aspect = sizes.width / sizes.height;
+
+  if (camera.isPerspectiveCamera) {
+    camera.aspect = aspect;
+  } else if (camera.isOrthographicCamera) {
+    camera.left = -(zoom * aspect) / 2;
+    camera.right = (zoom * aspect) / 2;
+    camera.top = zoom / 2;
+    camera.bottom = -zoom / 2;
+  }
+
   camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
+};
+
+const changeCamera = () => {
+  const position = camera.position.clone();
+  const target = controls.target.clone();
+  controls.dispose();
+  camera.removeFromParent();
+
+  camera = setupCamera();
+  camera.position.copy(position);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.copy(target);
+  controls.update();
+
+  resize();
 };
 
 pane
