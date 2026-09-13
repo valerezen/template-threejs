@@ -38,17 +38,27 @@ pane
     changeCamera();
   });
 
-const fovBinding = pane.addBinding(PARAMS, "fov", {
-  min: 0,
-  max: 200,
-  step: 1,
-});
+const fovBinding = pane
+  .addBinding(PARAMS, "fov", {
+    min: 1,
+    max: 179,
+    step: 1,
+  })
+  .on("change", () => {
+    camera.fov = PARAMS.fov;
+    console.log(PARAMS.fov, camera.fov);
+    camera.updateProjectionMatrix();
+  });
 
-const zoomBinding = pane.addBinding(PARAMS, "zoom", {
-  min: 0,
-  max: 200,
-  step: 1,
-});
+const zoomBinding = pane
+  .addBinding(PARAMS, "zoom", {
+    min: 1,
+    max: 50,
+    step: 0.1,
+  })
+  .on("change", () => {
+    resize();
+  });
 
 //Scene
 const scene = new THREE.Scene();
@@ -69,7 +79,7 @@ const setupCamera = () => {
   if (PARAMS.camera == "perspective") {
     console.log("perspective");
     const camera = new THREE.PerspectiveCamera(
-      75,
+      PARAMS.fov,
       sizes.width / sizes.height,
       0.1,
       1000,
@@ -109,9 +119,14 @@ let controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 //Animate
-const tick = () => {
-  controls.update();
+const timer = new THREE.Timer();
+timer.connect(document);
 
+const tick = () => {
+  timer.update();
+  const delta = timer.getDelta();
+
+  controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 };
@@ -150,11 +165,11 @@ const changeCamera = () => {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(target);
   controls.update();
-  updateCameraBinding();
+  updateBinding();
   resize();
 };
 
-const updateCameraBinding = () => {
+const updateBinding = () => {
   if (PARAMS.camera == "orthographic") {
     fovBinding.hidden = true;
     zoomBinding.hidden = false;
@@ -163,7 +178,8 @@ const updateCameraBinding = () => {
     zoomBinding.hidden = true;
   }
 };
-updateCameraBinding();
+
+updateBinding();
 
 pane
   .addBinding(PARAMS, "aspectRatio", {
