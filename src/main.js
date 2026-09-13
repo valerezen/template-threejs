@@ -10,7 +10,7 @@ const pane = new Pane({
 
 const PARAMS = {
   aspectRatio: 3 / 4,
-  camera: "orthographic",
+  camera: "perspective",
   fov: 75,
   zoom: 4,
 };
@@ -38,19 +38,17 @@ pane
     changeCamera();
   });
 
-if (PARAMS.camera == "perspective") {
-  pane.addBinding(PARAMS, "fov", {
-    min: 0,
-    max: 200,
-    step: 1,
-  });
-} else if (PARAMS.camera == "orthographic") {
-  pane.addBinding(PARAMS, "zoom", {
-    min: 0,
-    max: 200,
-    step: 1,
-  });
-}
+const fovBinding = pane.addBinding(PARAMS, "fov", {
+  min: 0,
+  max: 200,
+  step: 1,
+});
+
+const zoomBinding = pane.addBinding(PARAMS, "zoom", {
+  min: 0,
+  max: 200,
+  step: 1,
+});
 
 //Scene
 const scene = new THREE.Scene();
@@ -152,9 +150,20 @@ const changeCamera = () => {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(target);
   controls.update();
-
+  updateCameraBinding();
   resize();
 };
+
+const updateCameraBinding = () => {
+  if (PARAMS.camera == "orthographic") {
+    fovBinding.hidden = true;
+    zoomBinding.hidden = false;
+  } else if (PARAMS.camera == "perspective") {
+    fovBinding.hidden = false;
+    zoomBinding.hidden = true;
+  }
+};
+updateCameraBinding();
 
 pane
   .addBinding(PARAMS, "aspectRatio", {
