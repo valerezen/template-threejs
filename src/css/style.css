@@ -5,3 +5,10 @@
   justify-content: center;
   align-items: center;
 }
+
+#export-pane {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  width: 256px;
+}

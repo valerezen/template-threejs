@@ -8,6 +8,8 @@ import { Pane } from "tweakpane";
 import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 
+import { setupExport, saveBlob } from "./export.js";
+
 gsap.registerPlugin(CustomEase);
 
 const myCanvas = document.querySelector(".webgl");
@@ -28,9 +30,15 @@ const resolutions = {
 };
 
 const sizes = {
-  width: resolutions.height * PARAMS.aspectRatio,
-  height: resolutions.height,
+  width: 0,
+  height: 0,
 };
+
+sizes.width = Math.min(
+  resolutions.width,
+  resolutions.height * PARAMS.aspectRatio,
+);
+sizes.height = sizes.width / PARAMS.aspectRatio;
 
 pane
   .addBinding(PARAMS, "camera", {
@@ -138,6 +146,14 @@ controls.update();
 const timer = new THREE.Timer();
 timer.connect(document);
 
+setupExport(() => {
+  renderer.render(scene, camera);
+
+  myCanvas.toBlob((blob) => {
+    saveBlob(blob, `screencapture-${myCanvas.width}x${myCanvas.height}.png`);
+  }, "image/png");
+});
+
 const tick = () => {
   timer.update();
   const delta = timer.getDelta();
@@ -153,8 +169,12 @@ const tick = () => {
 const resize = () => {
   resolutions.width = window.innerWidth;
   resolutions.height = window.innerHeight;
-  sizes.width = resolutions.height * PARAMS.aspectRatio;
-  sizes.height = resolutions.height;
+  sizes.width = Math.min(
+    resolutions.width,
+    resolutions.height * PARAMS.aspectRatio,
+  );
+
+  sizes.height = sizes.width / PARAMS.aspectRatio;
 
   const aspect = sizes.width / sizes.height;
 

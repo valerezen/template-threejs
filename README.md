@@ -1,1 +1,1 @@
-# Three.js template for designer
+# Three.js template for designers
