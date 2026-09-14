@@ -38,3 +38,19 @@ export const initZoomBinding = (params, pane, onZoomChange) => {
     })
     .on("change", onZoomChange);
 };
+
+export const initAspectRatioBinding = (params, pane, onAspectRatioChange) => {
+  return pane
+    .addBinding(params, "aspectRatio", {
+      options: {
+        "1:1": 1 / 1,
+        "3:4": 3 / 4,
+        "4:3": 4 / 3,
+        "3:5": 3 / 5,
+        "4:5": 4 / 5,
+        "9:16": 9 / 16,
+      },
+      label: "ratio",
+    })
+    .on("change", onAspectRatioChange);
+};

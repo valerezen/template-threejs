@@ -13,7 +13,9 @@ import {
   initCameraChangeBinding,
   initFovBinding,
   initZoomBinding,
+  initAspectRatioBinding,
 } from "./controls.js";
+import { label } from "three/tsl";
 
 gsap.registerPlugin(CustomEase);
 
@@ -24,6 +26,7 @@ const PARAMS = {
   camera: "perspective",
   fov: 75,
   zoom: 4,
+  colors: ["#ff0000", "#00ff00", "#0000ff"],
 };
 
 const pane = initPane(PARAMS);
@@ -63,6 +66,16 @@ const fovBinding = initFovBinding(PARAMS, pane, () => {
 
 const zoomBinding = initZoomBinding(PARAMS, pane, () => {
   resize();
+});
+
+const palette = pane.addFolder({
+  title: "Palette",
+});
+
+PARAMS.colors.forEach((color, i) => {
+  palette.addBinding(PARAMS.colors, i, {
+    label: `Color ${i + 1}`,
+  });
 });
 
 //Scene
@@ -161,19 +174,9 @@ const changeCamera = () => {
   resize();
 };
 
-pane
-  .addBinding(PARAMS, "aspectRatio", {
-    options: {
-      "1:1": 1 / 1,
-      "3:4": 3 / 4,
-      "4:3": 4 / 3,
-      "3:5": 3 / 5,
-      "4:5": 4 / 5,
-      "9:16": 9 / 16,
-    },
-    label: "ratio",
-  })
-  .on("change", resize);
+initAspectRatioBinding(PARAMS, pane, () => {
+  resize();
+});
 
 window.addEventListener("resize", resize);
 
