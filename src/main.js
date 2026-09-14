@@ -1,7 +1,14 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 import { toRadians, map, lerp, random } from "./utils.js";
+
 import { Pane } from "tweakpane";
+
+import { gsap } from "gsap";
+import { CustomEase } from "gsap/CustomEase";
+
+gsap.registerPlugin(CustomEase);
 
 const myCanvas = document.querySelector(".webgl");
 const pane = new Pane({
@@ -114,7 +121,7 @@ const setupCamera = () => {
 };
 
 let camera = setupCamera();
-camera.position.z = 3;
+camera.position.z = 5;
 
 //Render
 const renderer = new THREE.WebGLRenderer({
@@ -134,6 +141,8 @@ timer.connect(document);
 const tick = () => {
   timer.update();
   const delta = timer.getDelta();
+
+  cube.rotation.y += delta * 0.5;
 
   controls.update();
   renderer.render(scene, camera);
