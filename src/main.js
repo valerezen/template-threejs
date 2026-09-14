@@ -9,6 +9,7 @@ import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 
 import { setupExport, saveBlob } from "./export.js";
+import { setupCamera, resizeCamera } from "./camera.js";
 
 gsap.registerPlugin(CustomEase);
 
@@ -50,7 +51,15 @@ pane
   })
   .on("change", () => {
     console.log("test");
-    changeCamera();
+    changeCamera(
+      PARAMS,
+      fovBinding,
+      zoomBinding,
+      controls,
+      sizes,
+      renderer,
+      camera,
+    );
   });
 
 const fovBinding = pane
@@ -99,36 +108,8 @@ const cube = new THREE.Mesh(
 scene.add(cube);
 
 //Camera
-const setupCamera = () => {
-  if (PARAMS.camera == "perspective") {
-    console.log("perspective");
-    const camera = new THREE.PerspectiveCamera(
-      PARAMS.fov,
-      sizes.width / sizes.height,
-      0.001,
-      1000,
-    );
 
-    return camera;
-  } else {
-    console.log("orthographic");
-    const viewHeight = PARAMS.zoom;
-    const aspect = sizes.width / sizes.height;
-    const viewWidth = viewHeight * aspect;
-
-    const camera = new THREE.OrthographicCamera(
-      -viewWidth / 2,
-      viewWidth / 2,
-      viewHeight / 2,
-      -viewHeight / 2,
-      0.001,
-      1000,
-    );
-    return camera;
-  }
-};
-
-let camera = setupCamera();
+let camera = setupCamera(PARAMS, sizes);
 camera.position.z = 5;
 
 //Render
@@ -178,46 +159,35 @@ const resize = () => {
 
   const aspect = sizes.width / sizes.height;
 
-  if (camera.isPerspectiveCamera) {
-    camera.aspect = aspect;
-  } else if (camera.isOrthographicCamera) {
-    camera.left = -(PARAMS.zoom * aspect) / 2;
-    camera.right = (PARAMS.zoom * aspect) / 2;
-    camera.top = PARAMS.zoom / 2;
-    camera.bottom = -PARAMS.zoom / 2;
-  }
+  resizeCamera(camera, aspect, PARAMS.zoom);
 
-  camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
 };
+
+const updateBinding = () => {
+  const isOrtho = PARAMS.camera === "orthographic";
+
+  fovBinding.hidden = isOrtho;
+  zoomBinding.hidden = !isOrtho;
+};
+updateBinding();
 
 const changeCamera = () => {
   const position = camera.position.clone();
   const target = controls.target.clone();
-  controls.dispose();
-  camera.removeFromParent();
 
-  camera = setupCamera();
+  controls.dispose();
+
+  camera = setupCamera(PARAMS, sizes);
   camera.position.copy(position);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(target);
   controls.update();
+
   updateBinding();
   resize();
 };
-
-const updateBinding = () => {
-  if (PARAMS.camera == "orthographic") {
-    fovBinding.hidden = true;
-    zoomBinding.hidden = false;
-  } else if (PARAMS.camera == "perspective") {
-    fovBinding.hidden = false;
-    zoomBinding.hidden = true;
-  }
-};
-
-updateBinding();
 
 pane
   .addBinding(PARAMS, "aspectRatio", {
