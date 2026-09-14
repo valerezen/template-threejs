@@ -3,20 +3,21 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { toRadians, map, lerp, random } from "./utils.js";
 
-import { Pane } from "tweakpane";
-
 import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 
 import { setupExport, saveBlob } from "./export.js";
 import { setupCamera, resizeCamera } from "./camera.js";
+import {
+  initPane,
+  initCameraChangeBinding,
+  initFovBinding,
+  initZoomBinding,
+} from "./controls.js";
 
 gsap.registerPlugin(CustomEase);
 
 const myCanvas = document.querySelector(".webgl");
-const pane = new Pane({
-  title: "Params",
-});
 
 const PARAMS = {
   aspectRatio: 3 / 4,
@@ -24,6 +25,8 @@ const PARAMS = {
   fov: 75,
   zoom: 4,
 };
+
+const pane = initPane(PARAMS);
 
 const resolutions = {
   width: window.innerWidth,
@@ -41,57 +44,26 @@ sizes.width = Math.min(
 );
 sizes.height = sizes.width / PARAMS.aspectRatio;
 
-pane
-  .addBinding(PARAMS, "camera", {
-    options: {
-      perspective: "perspective",
-      orthographic: "orthographic",
-    },
-    label: "camera",
-  })
-  .on("change", () => {
-    console.log("test");
-    changeCamera(
-      PARAMS,
-      fovBinding,
-      zoomBinding,
-      controls,
-      sizes,
-      renderer,
-      camera,
-    );
-  });
+initCameraChangeBinding(PARAMS, pane, () => {
+  changeCamera();
+});
 
-const fovBinding = pane
-  .addBinding(PARAMS, "fov", {
-    min: 1,
-    max: 179,
-    step: 1,
-  })
-  .on("change", () => {
-    const oldFov = THREE.MathUtils.degToRad(camera.fov);
-    const newFov = THREE.MathUtils.degToRad(PARAMS.fov);
-    const ratio = Math.tan(oldFov / 2) / Math.tan(newFov / 2);
+const fovBinding = initFovBinding(PARAMS, pane, () => {
+  const oldFov = THREE.MathUtils.degToRad(camera.fov);
+  const newFov = THREE.MathUtils.degToRad(PARAMS.fov);
+  const ratio = Math.tan(oldFov / 2) / Math.tan(newFov / 2);
+  camera.position
+    .sub(controls.target)
+    .multiplyScalar(ratio)
+    .add(controls.target);
+  camera.fov = PARAMS.fov;
+  console.log(PARAMS.fov, camera.fov);
+  camera.updateProjectionMatrix();
+});
 
-    camera.position
-      .sub(controls.target)
-      .multiplyScalar(ratio)
-      .add(controls.target);
-
-    camera.fov = PARAMS.fov;
-    console.log(PARAMS.fov, camera.fov);
-    camera.updateProjectionMatrix();
-  });
-
-const zoomBinding = pane
-  .addBinding(PARAMS, "zoom", {
-    min: 1,
-    max: 50,
-    step: 0.1,
-  })
-  .on("change", () => {
-    resize();
-  });
+const zoomBinding = initZoomBinding(PARAMS, pane, () => {
+  resize();
+});
 
 //Scene
 const scene = new THREE.Scene();
