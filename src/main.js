@@ -45,6 +45,15 @@ const fovBinding = pane
     step: 1,
   })
   .on("change", () => {
+    const oldFov = THREE.MathUtils.degToRad(camera.fov);
+    const newFov = THREE.MathUtils.degToRad(PARAMS.fov);
+    const ratio = Math.tan(oldFov / 2) / Math.tan(newFov / 2);
+
+    camera.position
+      .sub(controls.target)
+      .multiplyScalar(ratio)
+      .add(controls.target);
+
     camera.fov = PARAMS.fov;
     console.log(PARAMS.fov, camera.fov);
     camera.updateProjectionMatrix();
@@ -81,7 +90,7 @@ const setupCamera = () => {
     const camera = new THREE.PerspectiveCamera(
       PARAMS.fov,
       sizes.width / sizes.height,
-      0.1,
+      0.001,
       1000,
     );
 
@@ -97,7 +106,7 @@ const setupCamera = () => {
       viewWidth / 2,
       viewHeight / 2,
       -viewHeight / 2,
-      1,
+      0.001,
       1000,
     );
     return camera;
