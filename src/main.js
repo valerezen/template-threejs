@@ -14,6 +14,7 @@ import {
   initFovBinding,
   initZoomBinding,
   initAspectRatioBinding,
+  initColorsBinding,
 } from "./controls.js";
 
 gsap.registerPlugin(CustomEase);
@@ -25,7 +26,7 @@ const PARAMS = {
   camera: "perspective",
   fov: 75,
   zoom: 4,
-  colors: ["#ff0000", "#00ff00", "#0000ff", "#ffff00"],
+  colors: ["#ff0000", "#00ff00", "#0000ff"],
 };
 
 const pane = initPane(PARAMS);
@@ -69,21 +70,13 @@ const zoomBinding = initZoomBinding(PARAMS, pane, () => {
   resize();
 });
 
-const palette = pane.addFolder({
-  title: "Palette",
+initAspectRatioBinding(PARAMS, pane, () => {
+  resize();
 });
 
-PARAMS.colors.forEach((e, i) => {
-  palette
-    .addBinding(PARAMS.colors, i, {
-      label: `Color ${i + 1}`,
-    })
-    .on("change", (e) => {
-      materials[i].color.set(e.value);
-    });
-
+PARAMS.colors.forEach((color) => {
   const material = new THREE.MeshBasicMaterial({
-    color: PARAMS.colors[i],
+    color,
     wireframe: false,
     side: THREE.DoubleSide,
   });
@@ -91,13 +84,15 @@ PARAMS.colors.forEach((e, i) => {
   materials.push(material);
 });
 
-console.log(materials.length);
+initColorsBinding(PARAMS, pane, (index, color) => {
+  materials[index].color.set(color);
+});
 
 //Scene
 const scene = new THREE.Scene();
 
 //Object
-const cube = new THREE.Mesh(new THREE.BoxGeometry(), materials[3]);
+const cube = new THREE.Mesh(new THREE.BoxGeometry(), materials[0]);
 
 scene.add(cube);
 
@@ -182,10 +177,6 @@ const changeCamera = () => {
   updateBinding();
   resize();
 };
-
-initAspectRatioBinding(PARAMS, pane, () => {
-  resize();
-});
 
 window.addEventListener("resize", resize);
 

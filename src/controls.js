@@ -54,3 +54,19 @@ export const initAspectRatioBinding = (params, pane, onAspectRatioChange) => {
     })
     .on("change", onAspectRatioChange);
 };
+
+export const initColorsBinding = (params, pane, onColorsChange) => {
+  const palette = pane.addFolder({
+    title: "Palette",
+  });
+
+  params.colors.forEach((color, i) => {
+    palette
+      .addBinding(params.colors, i, {
+        label: `Color ${i + 1}`,
+      })
+      .on("change", (e) => {
+        onColorsChange(i, e.value);
+      });
+  });
+};
