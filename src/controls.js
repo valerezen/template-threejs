@@ -7,6 +7,14 @@ export const initPane = () => {
   return pane;
 };
 
+export const initBackgroundBinding = (params, pane, onBackgroundChange) => {
+  return pane
+    .addBinding(params, "background", {
+      label: "background",
+    })
+    .on("change", onBackgroundChange);
+};
+
 export const initCameraChangeBinding = (params, pane, onCameraChange) => {
   return pane
     .addBinding(params, "camera", {

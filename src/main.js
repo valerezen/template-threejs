@@ -10,6 +10,7 @@ import { setupExport, saveBlob } from "./export.js";
 import { setupCamera, resizeCamera } from "./camera.js";
 import {
   initPane,
+  initBackgroundBinding,
   initCameraChangeBinding,
   initFovBinding,
   initZoomBinding,
@@ -27,6 +28,7 @@ const PARAMS = {
   fov: 75,
   zoom: 4,
   colors: ["#ff0000", "#00ff00", "#0000ff"],
+  background: "#000000",
 };
 
 const pane = initPane(PARAMS);
@@ -46,6 +48,10 @@ sizes.width = Math.min(
   resolutions.height * PARAMS.aspectRatio,
 );
 sizes.height = sizes.width / PARAMS.aspectRatio;
+
+initBackgroundBinding(PARAMS, pane, () => {
+  scene.background.set(PARAMS.background);
+});
 
 initCameraChangeBinding(PARAMS, pane, () => {
   changeCamera();
@@ -74,10 +80,10 @@ initAspectRatioBinding(PARAMS, pane, () => {
   resize();
 });
 
-PARAMS.colors.forEach((color) => {
+PARAMS.colors.map((color) => {
   const material = new THREE.MeshBasicMaterial({
     color,
-    wireframe: false,
+    wireframe: true,
     side: THREE.DoubleSide,
   });
 
@@ -89,7 +95,10 @@ initColorsBinding(PARAMS, pane, (index, color) => {
 });
 
 //Scene
+console.log(PARAMS.background);
+
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(PARAMS.background);
 
 //Object
 const cube = new THREE.Mesh(new THREE.BoxGeometry(), materials[0]);
